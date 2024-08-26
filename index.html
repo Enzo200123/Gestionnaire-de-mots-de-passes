@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Modern Login & Registration Form</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+      integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Formulaire d'inscription -->
+      <div class="form signup">
+        <h2>S'enregistrer</h2>
+        <div class="inputBox">
+          <input type="text" id="signupName" required="required" />
+          <i class="fa-regular fa-user"></i>
+          <span>Nom</span>
+        </div>
+        <div class="inputBox">
+          <input type="email" id="signupEmail" required="required" />
+          <i class="fa-regular fa-envelope"></i>
+          <span>Adresse mail</span>
+        </div>
+        <div class="inputBox">
+          <input type="password" id="signupPassword" required="required" />
+          <i class="fa-solid fa-lock"></i>
+          <span>Créer mot de passe</span>
+        </div>
+        <div class="inputBox">
+          <input type="password" id="signupConfirmPassword" required="required" />
+          <i class="fa-solid fa-lock"></i>
+          <span>Confirmer mot de passe</span>
+        </div>
+        <div class="inputBox">
+          <input type="submit" value="Créer un compte" id="signupBtn" />
+        </div>
+        <p>Déjà membre ? <a href="#" class="login">Se connecter</a></p>
+      </div>
+
+      <!-- Formulaire de connexion -->
+      <div class="form signin">
+        <h2>Se connecter</h2>
+        <div class="inputBox">
+          <input type="email" id="signinEmail" required="required" />
+          <i class="fa-regular fa-envelope"></i>
+          <span>Adresse mail</span>
+        </div>
+        <div class="inputBox">
+          <input type="password" id="signinPassword" required="required" />
+          <i class="fa-solid fa-lock"></i>
+          <span>Mot de passe</span>
+        </div>
+        <div class="inputBox">
+          <input type="submit" value="Login" id="signinBtn" />
+        </div>
+        <p>Pas encore inscrit ? <a href="#" class="create">Créer un compte</a></p>
+      </div>
+    </div>
+
+    <tbody id="passwordTable">
+      <!-- Les données seront insérées ici -->
+  </tbody>
+  
+    <script>
+      fetch('/get-passwords')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('passwordTable');
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${row.site}</td><td>${row.username}</td><td>${row.password}</td>`;
+                    tableBody.appendChild(tr);
+                });
+            })
+            .catch(error => console.error('Erreur:', error));
+
+      // Redirection si l'utilisateur est déjà connecté
+      if (localStorage.getItem('loggedInUser')) {
+        window.location.href = 'password_manager.html';
+      }
+
+      // Simulation de la base de données des utilisateurs
+      let users = JSON.parse(localStorage.getItem('users')) || [];
+
+      // Gestion de la création de compte
+      document.getElementById('signupBtn').onclick = function(event) {
+        event.preventDefault(); // Empêche le rechargement de la page
+
+        let name = document.getElementById('signupName').value;
+        let email = document.getElementById('signupEmail').value;
+        let password = document.getElementById('signupPassword').value;
+        let confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+        if (password !== confirmPassword) {
+          alert('Les mots de passe ne correspondent pas');
+          return;
+        }
+
+        // Vérification si l'utilisateur existe déjà
+        let userExists = users.find(user => user.email === email);
+
+        if (userExists) {
+          alert('Un compte avec cet email existe déjà');
+        } else {
+          // Création de l'utilisateur
+          users.push({ name, email, password });
+          localStorage.setItem('users', JSON.stringify(users));
+          alert('Compte créé avec succès. Vous pouvez maintenant vous connecter.');
+          document.querySelector(".login").click(); // Passe au formulaire de connexion
+        }
+      };
+
+      // Gestion de la connexion
+      document.getElementById('signinBtn').onclick = function(event) {
+        event.preventDefault(); // Empêche le rechargement de la page
+
+        let email = document.getElementById('signinEmail').value;
+        let password = document.getElementById('signinPassword').value;
+
+        // Recherche de l'utilisateur
+        let user = users.find(user => user.email === email && user.password === password);
+
+        if (user) {
+          localStorage.setItem('loggedInUser', JSON.stringify(user));
+          window.location.href = 'password_manager.html'; // Redirige vers la page du gestionnaire de mots de passe
+        } else {
+          alert('Email ou mot de passe incorrect');
+        }
+      };
+
+      // Gestion des transitions entre connexion et inscription
+      let login = document.querySelector(".login");
+      let create = document.querySelector(".create");
+      let container = document.querySelector(".container");
+
+      login.onclick = function () {
+        container.classList.add("signinForm");
+      };
+
+      create.onclick = function () {
+        container.classList.remove("signinForm");
+      };
+
+      
+
+    </script>
+  </body>
+</html>
